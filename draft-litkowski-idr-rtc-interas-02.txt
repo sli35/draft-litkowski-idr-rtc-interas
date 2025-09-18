@@ -132,9 +132,7 @@ Internet-Draft                 rtc-interas                September 2025
                                 |
 
 
-                                  Figure 1
-
-   Inter-AS VPN scenario
+                      Figure 1: Inter-AS VPN scenario
 
    An example is provided in Figure 1.  ASBR11, ASBR12 and ASBR13 are
    part of the AS1.  We consider that all PE11 and PE12 are interested
@@ -156,6 +154,8 @@ Internet-Draft                 rtc-interas                September 2025
    may lead to some limitations/issues in some scenarios.
 
 3.1.  Disjoint ASes
+
+
 
 
 
@@ -193,9 +193,7 @@ Internet-Draft                 rtc-interas                September 2025
                              |
 
 
-                                  Figure 2
-
-   Inter-AS with disjoint ASes
+                   Figure 2: Inter-AS with disjoint ASes
 
    Figure 2 presents a scenario where datacenters are connected through
    MPLS VPN interas option B to a service provider network.  RT
@@ -217,6 +215,8 @@ Internet-Draft                 rtc-interas                September 2025
    However, even if RR1 picked up PE2 has best path, because PE2 picked
    up CE2 as best path, CE3 will have never received VPN routes for RT
    1:1.
+
+
 
 
 

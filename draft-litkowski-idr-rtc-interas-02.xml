@@ -136,7 +136,7 @@
 	Hence, the VPN routes are distributed to this origin-as along the shortest-path only.
 	</t>
 
-	<figure anchor="ebgp-multihoming-figure">
+	<figure anchor="ebgp-multihoming-figure" title="Inter-AS VPN scenario">
 		<artwork>
   AS 1                                          AS 2
                              |
@@ -156,7 +156,6 @@ PE11                         |               (mpibgp vpnv4+rtc)
                              |
 
 		</artwork>
-		<postamble>Inter-AS VPN scenario</postamble>
 	</figure>
 
 
@@ -180,7 +179,7 @@ PE11                         |               (mpibgp vpnv4+rtc)
 
 		<section anchor="problem-disjoint-as" title="Disjoint ASes">
 
-			<figure anchor="disjoint-as">
+			<figure anchor="disjoint-as" title="Inter-AS with disjoint ASes">
 			<artwork>
 
   AS65000                  |           AS 1
@@ -206,7 +205,6 @@ PE11                         |               (mpibgp vpnv4+rtc)
                           |
 
 			</artwork>
-			<postamble>Inter-AS with disjoint ASes</postamble>
 			</figure>
 		
 			<t>
