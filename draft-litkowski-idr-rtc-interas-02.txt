@@ -265,7 +265,7 @@ Internet-Draft                 rtc-interas                September 2025
 
    As examples:
 
-      An implementation MAY support the ability to consider all paths
+   *  An implementation MAY support the ability to consider all paths
       for external RT NLRIs as eligible to be part of the VPN route
       distribution tree regardless of the origin-as.  Thus, all VPN
       routes will be propagated other all possible distribution paths.
@@ -282,14 +282,14 @@ Litkowski, et al.         Expires 22 March 2026                 [Page 5]
 Internet-Draft                 rtc-interas                September 2025
 
 
-      An implementation MAY support the ability to consider all paths
+   *  An implementation MAY support the ability to consider all paths
       for external RT NLRIs as eligible to be part of the VPN route
       distribution tree for only a subset of origin-as (e.g.: configured
       list of ASes, or all private ASes...).  Thus, VPN routes will be
       propagated other all possible distribution paths only for a subset
       of destination ASes.
 
-      An implementation MAY support the ability to consider the best and
+   *  An implementation MAY support the ability to consider the best and
       second best paths for external RT NLRIs as eligible to be part of
       the VPN route distribution tree regardless of the origin-as.  This
       would allow to provide at least one alternate path for VPN routes

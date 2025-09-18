@@ -253,7 +253,7 @@ PE11                         |               (mpibgp vpnv4+rtc)
 	</t>
 	<t>
 	As examples:
-	<list>
+	<list style="symbols">
 		<t>An implementation MAY support the ability to consider all paths for external RT NLRIs as eligible to be part of the VPN route distribution tree regardless of the origin-as. Thus, all VPN routes will be propagated other all possible distribution paths.</t>
 		<t>An implementation MAY support the ability to consider all paths for external RT NLRIs as eligible to be part of the VPN route distribution tree for only a subset of origin-as (e.g.: configured list of ASes, or all private ASes...). Thus, VPN routes will be propagated other all possible distribution paths only for a subset of destination ASes.</t>
 		<t>An implementation MAY support the ability to consider the best and second best paths for external RT NLRIs as eligible to be part of the VPN route distribution tree regardless of the origin-as. This would allow to provide at least one alternate path for VPN routes in the destination ASes.</t>
