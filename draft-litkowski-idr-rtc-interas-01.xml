@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY RFC4684 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4684.xml">
+<!ENTITY RFC4364 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4364.xml">
+
+
+]>
+<?xml-stylesheet type="text/xsl" href="rfc2629.xslt" ?>
+<!-- used by XSLT processors -->
+<!-- OPTIONS, known as processing instructions (PIs) go here. -->
+<!-- For a complete list and description of PIs,
+     please see http://xml.resource.org/authoring/README.html. -->
+<!-- Below are generally applicable PIs that most I-Ds might want to use. -->
+<?rfc strict="yes" ?>
+<!-- give errors regarding ID-nits and DTD validation -->
+<!-- control the table of contents (ToC): -->
+<?rfc toc="yes"?>
+<!-- generate a ToC -->
+<?rfc tocdepth="3"?>
+<!-- the number of levels of subsections in ToC. default: 3 -->
+<!-- control references: -->
+<?rfc symrefs="yes"?>
+<!-- use symbolic references tags, i.e, [RFC2119] instead of [1] -->
+<?rfc sortrefs="yes" ?>
+<!-- sort the reference entries alphabetically -->
+<!-- control vertical white space: 
+     (using these PIs as follows is recommended by the RFC Editor) -->
+<?rfc compact="yes" ?>
+<!-- do not start each main section on a new page -->
+<?rfc subcompact="no" ?>
+<!-- keep one blank line between list items -->
+<!-- end of popular PIs -->
+<rfc category="std" docName="draft-litkowski-idr-rtc-interas-01"
+     ipr="trust200902">
+  <front>
+    <title abbrev="rtc-interas">Inter Domain considerations for Constrained Route distribution</title>
+
+    <author fullname="Stephane Litkowski" initials="S" surname="Litkowski">
+      <organization>Orange Business Service</organization>
+
+      <address>
+        <!-- postal><street/><city/><region/><code/><country/></postal -->
+
+        <!-- <phone/> -->
+
+        <!-- <facsimile/> -->
+
+        <email>stephane.litkowski@orange.com</email>
+
+        <!-- <uri/> -->
+      </address>
+    </author>
+    <author fullname="Jeff Haas" initials="J" surname="Haas">
+      <organization>Juniper Networks</organization>
+
+      <address>
+        <!-- postal><street/><city/><region/><code/><country/></postal -->
+
+        <!-- <phone/> -->
+
+        <!-- <facsimile/> -->
+
+        <email>jhaas@juniper.net</email>
+
+        <!-- <uri/> -->
+      </address>
+    </author>
+	
+	    <author fullname="Keyur Patel" initials="K" surname="Patel">
+      <organization>Cisco Systems</organization>
+
+      <address>
+        <!-- postal><street/><city/><region/><code/><country/></postal -->
+
+        <!-- <phone/> -->
+
+        <!-- <facsimile/> -->
+
+        <email>keyupate@cisco.com</email>
+
+        <!-- <uri/> -->
+      </address>
+    </author>
+   
+    <date year="2015"/>
+
+    <area/>
+
+    <workgroup>Interdomain Working Group</workgroup>
+
+    <!-- <keyword/> -->
+
+    <!-- <keyword/> -->
+
+    <!-- <keyword/> -->
+
+    <!-- <keyword/> -->
+
+    <abstract>
+      <t>
+	  <xref target="RFC4684"/> defines Multi-Protocol BGP (MP-BGP) procedures that allow BGP speakers
+	  to exchange Route Target reachability information in order to limit the propagation of Virtual Private Networks
+	  (VPN) Network Layer Reachability Information (NLRI). 
+	  </t>
+	  <t>
+	  <xref target="RFC4684"/> addresses both intra domain and inter domain distributions. Based on operational deployments,
+	  the current distribution model defined in <xref target="RFC4684"/> may cause some issue in specific scenarios.
+	  </t>
+	  <t>
+	  This document refines the route distribution rules for inter domain NLRIs in order to address these specific scenarios.
+	  </t>
+	</abstract>
+	
+	<note title="Requirements Language">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+      document are to be interpreted as described in <xref
+      target="RFC2119"/>.</t>
+  </note>
+  
+  </front>
+
+  <middle>
+	<section anchor="rfc4684" title="External NLRI propagation">  
+	<t>
+	<xref target="RFC4684"/> Section 3.1 and 3.2 describes propagation of Route Target NLRI between ASes and inside an AS and distinguish two types of NLRIs :
+		<list style="symbols">
+		<t>Locally originated NLRI where origin-as field of the NLRI is equal to the local AS number.</t>
+		<t>External NLRI where origin-as field of the NLRI is different from the local AS number.</t>
+		</list>
+	</t>
+	<t>The global idea of inter AS propagation, is to propagate only VPN routes on shortest path towards the peer ASes using pruning of some branches of the distribution tree.</t>
+	<t>
+	Based on current implementations of RFC4684, we can see two flavors of pruning for interAS that are both compatible with RFC4684 text.
+	<list style="symbols">
+	<t>Pruning based on peering type : pruning rule is applied when RT membership path are learned from eBGP peers only. No pruning is applied when path is iBGP.</t>
+	<t>Pruning based on NLRI type : pruning rule is applied to external RT membership NLRIs (source AS different from local AS). This pruning rule applies both to eBGP and iBGP.</t>
+	</list>
+	</t>
+		<section anchor="peer-pruning" title="Peering type based pruning">
+		
+		<figure>
+		<artwork>
+  AS 400                AS 500
+		        |
+         ASBR1 --- (mpebgp vpnv4+rtc)___ 	
+                |                        \
+                |                         \
+         ASBR2 --- (mpebgp vpnv4+rtc) -- PE1
+                |                             \
+                |                      (mpibgp vpnv4+rtc)
+				|      				            \
+                |                                RR ------------ PE3
+                |                               /
+                |                      (mpibgp vpnv4+rtc)  												
+                |                            /
+         ASBR3 --- (mpebgp vpnv4+rtc) -- PE2
+                |
+                |
+				
+				Figure 1
+		</artwork>
+		</figure>
+		
+		<t>
+		In the figure above, ASBR1,ASBR2 and ASBR3 are MPLS VPN nodes part of the AS 400.
+		We consider that all these ASBRs are importing the same RT : 400:1, which is also exported by PE3.
+		All ASBRs will generate the same RT membership NLRI 400:400:1/96 towards their PE. PE2 will send its path for this RT membership to RR.
+		As PE1 has two ebgp paths for the same RT membership NLRI, it will apply pruning (as per peering type based pruning policy), 
+		if we consider that path from ASBR1 is the best path, RT distribution tree will only have a branch to ASBR1, and so ASBR2 will not receive any VPN route for RT 400:1 from PE1.
+		PE1 will also send the RT membership NLRI to RR.
+		RR will so have two paths for NLRI 400:400:1/96. As both path are iBGP, no pruning will be applied (as per peering type based pruning policy), 
+		and RR will create tree branches for 400:1 to both PE1 and PE2. As a result, VPN routes originated by PE3 with RT 400:1 will be sent by RR to PE1 and PE2. PE1 will propagate the routes only to ASBR1. 
+		PE2 will propagate the routes to ASBR3. AS 400 will have knowledge from PE3 routes only from ASBR1 and ASBR2.
+		
+		</t>
+		
+		</section>
+		
+		<section anchor="nlri-pruning" title="NLRI type based pruning">
+		<t>
+		We consider the same setup as in Figure 1.
+		All ASBRs will generate the same RT membership NLRI 400:400:1/96 towards their PE. PE2 will send its path for this RT membership to RR.
+		As PE1 has two ebgp paths for the same external RT membership NLRI, it will apply pruning (as per NLRI type based pruning policy, pruning is applied because NLRI is external), 
+		if we consider that path from ASBR1 is the best path, RT distribution tree will only have a branch to ASBR1, and so ASBR2 will not receive any VPN route for RT 400:1 from PE1.
+		PE1 will also send the RT membership NLRI to RR.
+		RR will so have two paths for NLRI 400:400:1/96. As the NLRI is external, pruning will be applied : if we consider that path from PE1 is the best one, a single branch of distribution tree will be added towards PE1.
+		As a result, VPN routes originated by PE3 with RT 400:1 will be sent by RR to PE1 only. PE1 will propagate the routes only to ASBR1. 
+		AS 400 will have knowledge from PE3 routes only from ASBR1.
+		</t>
+
+		<figure>
+		<artwork>
+  AS 400                AS 500                       AS 400
+          |                                     |
+          |                                     |
+          |                                     | 
+ cPE1 --------- sPE1 ------ RR ------- sPE2 ---------- cPE2
+          |                                     |
+          |                                     |
+				Figure 2
+		</artwork>
+		</figure>
+		
+		<t>
+		Figure 2 presents at typical case where an AS (AS400) uses another AS (AS500) as transit to build VPN services.
+		If cPE1 and cPE2 shares a common VPN using RT 400:1, in case of NLRI type based pruning in AS500, RR in AS500 will perform pruning of VPN routes
+		for NLRI 400:400:1/96. Considering that path from sPE1 is considered as best path, sPE2 will be pruned and cPE2 will never receive VPN routes from cPE1.
+		This issue is discussed further in <xref target="problem-statement"/>.
+		</t>
+		</section>
+		
+		<section anchor="pros_cons" title="Analysis of both approaches">
+		<t>
+		Both pruning approaches have pros and cons. Service Provider will need to be aware of this pros/cons while deploying inter AS RTC.
+		<list style="symbols">
+		<t>
+		NLRI type based pruning helps in saving BGP paths in network nodes, inter AS distribution tree is only established on shortest path (at AS boundary and within the AS).
+		In figure 1, PE2 does not receive VPN routes for RT 400:1 because these routes are already advertised through another path. This approach prevents hot potatoe routing and 
+		transit for disjoint ASes.
+		</t>
+		<t>
+		Peering type based pruning is based on the fact that the local AS does not know the precise location of the VPNs in the peer AS, so there is no reason for a route reflector to perform blind pruning that may lead to suboptimal routing.
+		In figure 1, if we consider that ASBR3 is located in New York City, and ASBR1/2 are located in San Francisco. Considering that PE3 is located in Washington, performing NLRI type based pruning will prevent ASBR3 to receive PE3 routes, so routing from Washington to New York City will transit through San Francisco.
+		We must note that in case of ASBR1 and ASBR2 being in two far cities, peering type based pruning will also suffer from suboptimal routing.
+		The other point in favor of peering type pruning is faster convergence. In figure 1, when PE1 fails, backup routes are already available in AS400 through ASBR3.		
+		</t>
+		</list>
+		As a summary, NLRI type based pruning helps in saving BGP paths in the transit networks, while peering type based pruning permits more optimal routing and faster convergence with the drawback of propagating additional routes. 
+		Peering type based pruning may also experience convergence or suboptimal routing case in case a single node is attached to multiple routers in the external AS.
+		</t>
+		</section>
+		
+	</section>
+    <section anchor="problem-statement" title="Problem statement : disjoint peer AS">  
+		<t>
+		The previous section described how inter AS route distribution works and pros and cons of the existing approaches.
+		Apart of these pros/cons, pruning in both solutions may lead to some problematic situation where the remote AS is disjoint, as already shown in 
+		<xref target="nlri-pruning"/>.
+		</t>
+		<figure>
+		<artwork>
++-------+
+| DC1   | -- CE1 -- (mpebgp vpnv4+rtc) -- PE1
++-------+                                     \
+                                       (mpibgp vpnv4+rtc)
+									            \
+                                                 RR
+                                                /
+                                       (mpibgp vpnv4+rtc)  												
++-------+                                    /
+| DC2   | -- CE2 -- (mpebgp vpnv4+rtc) -- PE2
++-------+
+				Figure 3
+		</artwork>
+		</figure>
+		<t>
+	  The figure above describes another typical service provider scenario where datacenters are connected through MPLS VPN interas option B with the Service Provider network.
+	  Route Target Constraint (RTC) is deployed on MPeBGP sessions as well as internally in the service provider network to ensure optimal distribution of VPN routes (required for scaling reason).
+	  In this scenario, both Datacenters are using the same AS number, generally a private ASN (65000) like a typical PE-CE connection. As we expect DCs to communicate between each other, some features like "as-override" are deployed on PEs to overcome ASPATH loop issue.
+		</t>
+
+		<t>
+		In the Figure 3, CE1 and CE2 are advertising the RT 1:1 respectively to PE1 and PE2, the generated NLRI would be 65000:1:1/96. 
+		According to procedures defined in <xref target="RFC4684"/> Section 3.2, both PEs are using the standard BGP route selection and advertising rules.
+		So both PEs are advertising their path for 65000:1:1/96 to the route-reflector. In case of NLRI type based pruning, route-reflector will establish the distribution tree only to PE1 (considering PE1 is the best path).
+		</t>
+		<t>
+		Due to this behavior, VPN routes from DC1 would never to send to DC2 because PE2 is not part of the flooding tree and as DC1 and DC2 are disjoint, even if they are using the same ASN, 
+		there is no communication possible between them.
+		</t>
+		<t>
+		The same issue may appear if two MPeBGP sites using the same ASN are connected on the same PE like in figure 4. In this situation both NLRI type based pruning and Peering type based pruning solutions are impacted.
+		</t>
+		<figure>
+		<artwork>
++-------+
+| DC1   |  
++-------+                                     
+          \                             
+		 (mpebgp vpnv4+rtc)						          
+             \                             
+               PE                                
+             /
+         (mpebgp vpnv4+rtc) 
+          /		 
++-------+                                    
+| DC2   | 
++-------+
+          Figure 4
+		</artwork>
+		</figure>
+    </section>
+	
+	<section anchor="proposal" title="Proposal">
+	<t>
+	This document proposes to introduce some new behavior in complement of <xref target="RFC4684"/> to manage the disjoint AS case.</t>
+	<t>
+	In order to support our scenario, path pruning MAY be disabled by configuration for a given origin AS (different from the local AS).  
+	Implementations MAY also permit path pruning to be disabled for private AS numbers by default, 
+	but must make provision for it to be selectively enabled if such a feature is present.
+	</t>
+	<t>
+	This modification in establishing route distribution tree may create unnecessary flooding states in the situations where a real AS is multihomed to a service provider network (as displayed in Figure 3).
+
+		<figure>
+		<artwork>
+   ASN 65000                                                   ASN 64000
+ +-----------+                                               +-------------+
+ |   ASBR3   | -- (mpebgp vpnv4+rtc) -- ASBR1      PE1 ----  | CE1 --- DC1 |
+ |     |     |                             \      /          +-------------+
+ |     |     |                        (mpibgp vpnv4+rtc)
+ |(vpnv4+rtc)|							     \  /
+ |     |     |                                RR
+ |     |     |                               /  \
+ |     |     |                       (mpibgp vpnv4+rtc)  	   ASN 64000											
+ |     |     |                            /       \         +-------------+
+ |   ASBR4   | -- (mpebgp vpnv4+rtc) -- ASBR2      PE2 ---- | CE2 --- DC2 |
+ +-----------+                                              +-------------+
+				
+				                 Figure 3
+		</artwork>
+		</figure>
+
+	In the figure above, disabling pruning is required for AS64000 but it may be interesting to keep it enabled for AS65000. 
+	Implementations may require support for such granularity as proposed previously. 
+	</t>
+	</section>
+	
+	
+	<section anchor="Security" title="Security considerations">
+	<t>
+	This document does not introduce any new security issue compared to <xref target="RFC4684"/>.
+	</t>
+	</section>
+	
+    <section anchor="Acknowledgements" title="Acknowledgements"/>
+
+    <section anchor="IANA" title="IANA Considerations">
+    <t>There is no IANA consideration.</t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      &RFC2119;
+	  &RFC4684;
+	  &RFC4364;
+    </references>
+
+  </back>
+</rfc>
+
