@@ -208,7 +208,7 @@ PE11                         |               (mpibgp vpnv4+rtc)
 			</figure>
 		
 			<t>
-			<xref target="disjoint-as"/> presents a scenario where datacenters are connected through MPLS VPN interas option B to a service provider network.
+			<xref target="disjoint-as"/> presents a scenario where datacenters are connected through MPLS VPN inter-AS option B to a service provider network.
 	  	RT membership is distributed to optimize distribution of VPN routes.
 	  In this scenario, all datacenters are using the same AS number, generally a private ASN (65000). As we expect DCs to communicate between each other, some features like "as-override" are deployed on PEs to overcome ASPATH loop issue.
 			</t>
@@ -263,8 +263,12 @@ PE11                         |               (mpibgp vpnv4+rtc)
 
 	<section anchor="ops" title="Operational considerations">
 	<t>
-	Enabling alternate behaviors in consideration of external RT NLRIs that deviate from the default behavior specified in <xref target="RFC4684"/> may have operational implications as VPN routes may be distributed across additional paths leading to increase of BGP prefixes and paths on some nodes.
+	Enabling alternate behaviors in consideration of external RT NLRIs that deviate from the default behavior specified in <xref target="RFC4684"/> may have operational implications as VPN routes may be distributed across additional paths leading to increase of BGP prefixes and paths on some devices.
 	Users must carefully evaluate the impact of these changes on their network/router scale.
+	</t>
+	<t>
+	Choosing the intended behavior for considering paths of external RT NLRIs is a local decision. Different nodes can use different behaviors without breaking the overall functionality of the VPN: alternate behaviors are adding paths for the VPN routes.
+	However, in order to overcome the limitations of <xref target="RFC4684"/> presented in <xref target="problem-statement"/>, it is important to ensure that all nodes that are participating to the VPN route distribution (e.g.: RRs, ASBRs...) are configured with a behavior that fulfills the propagation requirements.
 	</t>
 	</section>
 

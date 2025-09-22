@@ -5,10 +5,10 @@
 Interdomain Working Group                                   S. Litkowski
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                                 J. Haas
-Expires: 22 March 2026                                               HPE
+Expires: 26 March 2026                                               HPE
                                                                 K. Patel
                                                                   Arrcus
-                                                       18 September 2025
+                                                       22 September 2025
 
 
      Inter Domain considerations for Constrained Route distribution
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 March 2026.
+   This Internet-Draft will expire on 26 March 2026.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Litkowski, et al.         Expires 22 March 2026                 [Page 1]
+Litkowski, et al.         Expires 26 March 2026                 [Page 1]
 
 Internet-Draft                 rtc-interas                September 2025
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Litkowski, et al.         Expires 22 March 2026                 [Page 2]
+Litkowski, et al.         Expires 26 March 2026                 [Page 2]
 
 Internet-Draft                 rtc-interas                September 2025
 
@@ -165,7 +165,7 @@ Internet-Draft                 rtc-interas                September 2025
 
 
 
-Litkowski, et al.         Expires 22 March 2026                 [Page 3]
+Litkowski, et al.         Expires 26 March 2026                 [Page 3]
 
 Internet-Draft                 rtc-interas                September 2025
 
@@ -196,7 +196,7 @@ Internet-Draft                 rtc-interas                September 2025
                    Figure 2: Inter-AS with disjoint ASes
 
    Figure 2 presents a scenario where datacenters are connected through
-   MPLS VPN interas option B to a service provider network.  RT
+   MPLS VPN inter-AS option B to a service provider network.  RT
    membership is distributed to optimize distribution of VPN routes.  In
    this scenario, all datacenters are using the same AS number,
    generally a private ASN (65000).  As we expect DCs to communicate
@@ -221,7 +221,7 @@ Internet-Draft                 rtc-interas                September 2025
 
 
 
-Litkowski, et al.         Expires 22 March 2026                 [Page 4]
+Litkowski, et al.         Expires 26 March 2026                 [Page 4]
 
 Internet-Draft                 rtc-interas                September 2025
 
@@ -277,7 +277,7 @@ Internet-Draft                 rtc-interas                September 2025
 
 
 
-Litkowski, et al.         Expires 22 March 2026                 [Page 5]
+Litkowski, et al.         Expires 26 March 2026                 [Page 5]
 
 Internet-Draft                 rtc-interas                September 2025
 
@@ -301,8 +301,18 @@ Internet-Draft                 rtc-interas                September 2025
    that deviate from the default behavior specified in [RFC4684] may
    have operational implications as VPN routes may be distributed across
    additional paths leading to increase of BGP prefixes and paths on
-   some nodes.  Users must carefully evaluate the impact of these
+   some devices.  Users must carefully evaluate the impact of these
    changes on their network/router scale.
+
+   Choosing the intended behavior for considering paths of external RT
+   NLRIs is a local decision.  Different nodes can use different
+   behaviors without breaking the overall functionality of the VPN:
+   alternate behaviors are adding paths for the VPN routes.  However, in
+   order to overcome the limitations of [RFC4684] presented in
+   Section 3, it is important to ensure that all nodes that are
+   participating to the VPN route distribution (e.g.: RRs, ASBRs...) are
+   configured with a behavior that fulfills the propagation
+   requirements.
 
 6.  Security considerations
 
@@ -320,23 +330,18 @@ Internet-Draft                 rtc-interas                September 2025
 
 9.  Normative References
 
+
+
+
+Litkowski, et al.         Expires 26 March 2026                 [Page 6]
+
+Internet-Draft                 rtc-interas                September 2025
+
+
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/info/rfc2119>.
-
-
-
-
-
-
-
-
-
-Litkowski, et al.         Expires 22 March 2026                 [Page 6]
-
-Internet-Draft                 rtc-interas                September 2025
-
 
    [RFC4684]  Marques, P., Bonica, R., Fang, L., Martini, L., Raszuk,
               R., Patel, K., and J. Guichard, "Constrained Route
@@ -384,9 +389,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-Litkowski, et al.         Expires 22 March 2026                 [Page 7]
+Litkowski, et al.         Expires 26 March 2026                 [Page 7]
