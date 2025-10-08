@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY RFC4684 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4684.xml">
+<!ENTITY RFC4364 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4364.xml">
+<!ENTITY RFC8174 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.8174.xml">
+
+]>
+<?xml-stylesheet type="text/xsl" href="rfc2629.xslt" ?>
+<!-- used by XSLT processors -->
+<!-- OPTIONS, known as processing instructions (PIs) go here. -->
+<!-- For a complete list and description of PIs,
+     please see http://xml.resource.org/authoring/README.html. -->
+<!-- Below are generally applicable PIs that most I-Ds might want to use. -->
+<?rfc strict="yes" ?>
+<!-- give errors regarding ID-nits and DTD validation -->
+<!-- control the table of contents (ToC): -->
+<?rfc toc="yes"?>
+<!-- generate a ToC -->
+<?rfc tocdepth="3"?>
+<!-- the number of levels of subsections in ToC. default: 3 -->
+<!-- control references: -->
+<?rfc symrefs="yes"?>
+<!-- use symbolic references tags, i.e, [RFC2119] instead of [1] -->
+<?rfc sortrefs="yes" ?>
+<!-- sort the reference entries alphabetically -->
+<!-- control vertical white space: 
+     (using these PIs as follows is recommended by the RFC Editor) -->
+<?rfc compact="yes" ?>
+<!-- do not start each main section on a new page -->
+<?rfc subcompact="no" ?>
+<!-- keep one blank line between list items -->
+<!-- end of popular PIs -->
+<rfc category="std" docName="draft-litkowski-idr-rtc-interas-03"
+     ipr="trust200902">
+  <front>
+    <title abbrev="rtc-interas">Inter Domain considerations for Constrained Route distribution</title>
+
+    <author fullname="Stephane Litkowski" initials="S" surname="Litkowski">
+      <organization>Cisco</organization>
+
+      <address>
+        <!-- postal><street/><city/><region/><code/><country/></postal -->
+
+        <!-- <phone/> -->
+
+        <!-- <facsimile/> -->
+
+        <email>slitkows@cisco.com</email>
+
+        <!-- <uri/> -->
+      </address>
+    </author>
+    <author fullname="Jeff Haas" initials="J" surname="Haas">
+      <organization>HPE</organization>
+
+      <address>
+        <!-- postal><street/><city/><region/><code/><country/></postal -->
+
+        <!-- <phone/> -->
+
+        <!-- <facsimile/> -->
+
+        <email>jhaas@juniper.net</email>
+
+        <!-- <uri/> -->
+      </address>
+    </author>
+	
+	    <author fullname="Keyur Patel" initials="K" surname="Patel">
+      <organization>Arrcus</organization>
+
+      <address>
+        <!-- postal><street/><city/><region/><code/><country/></postal -->
+
+        <!-- <phone/> -->
+
+        <!-- <facsimile/> -->
+
+        <email>keyur@arrcus.com</email>
+
+        <!-- <uri/> -->
+      </address>
+    </author>
+   
+    <date year="2025"/>
+
+    <area/>
+
+    <workgroup>Interdomain Working Group</workgroup>
+
+    <!-- <keyword/> -->
+
+    <!-- <keyword/> -->
+
+    <!-- <keyword/> -->
+
+    <!-- <keyword/> -->
+
+    <abstract>
+      <t>
+	  RFC4684 defines Multi-Protocol BGP (MP-BGP) procedures that allow BGP speakers
+	  to exchange Route Target reachability information in order to limit the propagation of Virtual Private Networks
+	  (VPN) Network Layer Reachability Information (NLRI). 
+	  </t>
+	  <t>
+	  RFC4684 addresses both intra domain and inter domain distributions. Operational deployment experience shows that
+	  the current distribution model defined in RFC4684 for inter domain may cause some issue in specific scenarios.
+	  </t>
+	  <t>
+	  This document proposes alternate route distribution rules for inter domain in order to address these specific scenarios.
+	  </t>
+	</abstract>
+  </front>
+
+  <middle>
+	<section title="Requirements Language" anchor="requirements">
+        <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+          "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT
+          RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+          interpreted as described in BCP 14 <xref target="RFC2119"/>
+          <xref target="RFC8174"/> when, and only when, they appear in
+          all capitals, as shown here.</t>
+	</section>
+
+	<section anchor="rfc4684" title="Standard Inter AS RT membership NLRI propagation">
+	<t>
+		<xref target="RFC4684"/> Section 3.1 and 3.2 describes respectively inter-AS and intra-AS VPN route distribution and distinguish two types of Route Target Membership NLRIs (RT NLRIs):
+		<list style="symbols">
+		<t>Locally originated NLRI where origin-as field of the NLRI is equal to the local AS number.</t>
+		<t>External NLRI where origin-as field of the NLRI is different from the local AS number.</t>
+		</list>
+	</t>
+	<t>When the mechanism detailed in <xref target="RFC4684"/> is in place, inter AS VPN route propagation happens only on the shortest path towards the peer ASes by pruning of some branches of the distribution tree.</t>
+	<t>
+	Existing implementations of <xref target="RFC4684"/> exhibit two flavors of pruning for interAS that are both compatible with <xref target="RFC4684"/>.
+	<list style="symbols">
+	<t>Pruning based on peering type: pruning is applied when RT membership path are learned from eBGP peers only. No pruning is applied when path is iBGP. The pruning applies regardless of the RT NLRI (locally originated or external).</t>
+	<t>Pruning based on NLRI type: pruning is applied to external RT NLRIs (source AS different from local AS). This pruning rule applies both to eBGP and iBGP.</t>
+	</list>
+	These different approaches in pruning can lead to different VPN route distribution behaviors as highlighted in the following example.
+	</t>
+	<figure anchor="ebgp-multihoming-figure" title="Inter-AS VPN scenario">
+		<artwork>
+  AS 1                                          AS 2
+                             |
+           ASBR11 --- (mpebgp vpnv4+rtc) ----+
+                             |                \
+                             |                 \
+           ASBR12 --- (mpebgp vpnv4+rtc) ---- ASBR21
+                             |                    \
+PE11                         |               (mpibgp vpnv4+rtc)
+                             |                      \
+                             |                     RR -------- PE12
+                             |                     /
+                             |                 (mpibgp vpnv4+rtc)
+                             |                   /
+           ASBR13 --- (mpebgp vpnv4+rtc) --- ASBR22
+                             |
+                             |
+
+		</artwork>
+	</figure>
+
+
+	<t>
+		An example is provided in <xref target="ebgp-multihoming-figure"/>.
+		ASBR11, ASBR12 and ASBR13 are part of the AS1.
+		We consider that all PE11 and PE12 are interested in an any-to-any VPN using RT 65535:10.
+		All ASBRs will generate and advertise the same RT NLRI 1:65335:10/96 towards ASBR21/22. 
+	</t>
+	<t>
+		When implementation uses peering type based pruning: as ASBR21 has two ebgp paths for 1:65535:10/96, only the best path (ASBR11) will be picked up as a branch of the VPN route distribution tree because the RT NLRI is received over eBGP.
+		However, RR in AS2 has two paths for 1:65535:10/96, one from ASBR21, one from ASBR22. Because the paths are iBGP, RR considers all paths as branches of the VPN distribution tree.
+		As a consequence, VPN routes from PE12 will be distributed to ASBR21 and ASBR22. In AS1, ASBR11 and ASBR13 will receive the routes.
+	</t>
+	<t>
+		When implementation uses NLRI type based pruning:  as ASBR21 has two ebgp paths for 1:65535:10/96, only the best path (ASBR11) will be picked up as a branch of the VPN route distribution tree because the RT NLRI is an external RT NLRI.
+		Similarly, RR in AS2 has two paths for 1:65535:10/96, one from ASBR21, one from ASBR22. Because the NLRI is an external RT NLRI, RR selects also only the best path (e.g.: ASBR21) as a branch of the VPN distribution tree.
+		As a consequence, VPN routes from PE12 will be distributed to ASBR21 only. In AS1, only ASBR11 will receive the routes.
+	</t>
+	</section>
+
+    <section anchor="problem-statement" title="Limitations of the current approach">
+		<t>
+		The current model of distribution of VPN routes across ASes when RT membership is advertising is optimizing the number of VPN route states to be maintained on nodes.
+		While this is a good goal, this may lead to some limitations/issues in some scenarios.
+		</t>
+
+
+		<section anchor="problem-disjoint-as" title="Disjoint ASes">
+
+			<figure anchor="disjoint-as" title="Inter-AS with disjoint ASes">
+			<artwork>
+
+  AS65000                  |           AS 1
+                           |
+
++-------+
+| DC1   | -- CE1 -- (mpebgp vpnv4+rtc) -- PE1
++-------+                                     \
+                                       (mpibgp vpnv4+rtc)
+                                                \
+                                                 RR
+                                                /
+                                       (mpibgp vpnv4+rtc)
++-------+                                    /
+| DC2   | -- CE2 -- (mpebgp vpnv4+rtc) -- PE2
++-------+                                  |
+                                           |
++-------+                                  |
+| DC3   | -- CE3 -- (mpebgp vpnv4+rtc) ----+
++-------+
+
+                          |
+                          |
+
+			</artwork>
+			</figure>
+		
+			<t>
+			<xref target="disjoint-as"/> presents a scenario where datacenters are connected through MPLS VPN inter-AS option B <xref target="RFC4364"/> to a service provider network.
+	  	RT membership is distributed to optimize distribution of VPN routes.
+	  In this scenario, all datacenters are using the same AS number, generally a private ASN (65000). As we expect DCs to communicate between each other, some features like "as-override" are deployed on PEs to overcome ASPATH loop issue.
+			</t>
+
+			<t>
+			CE1, CE2 and CE3 are advertising RT 1:1 respectively to PE1 and PE2, the generated NLRI would be 65000:1:1/96. 
+			According to procedures defined in <xref target="RFC4684"/> Section 3.2, both PEs are using the standard BGP route selection and advertisement rules.
+			PE2 has two paths for RT NLRI 65000:1:1/96, picks one as best (e.g.: CE2) and advertises it to the route-reflector. PE1 advertises its path learned from CE1 to the RR.
+			RR in AS1 has two paths for 65000:1:1/96 and will pick one as best (e.g.: path from PE1). The VPN route distribution tree will be established to PE1 only, PE2 will never get VPN routes for RT 1:1.
+			However, even if RR1 picked up PE2 has best path, because PE2 picked up CE2 as best path, CE3 will have never received VPN routes for RT 1:1.
+			</t>
+		</section>
+
+		<section anchor="problem-convergence" title="Slow convergence">
+			<t>
+			In <xref target="ebgp-multihoming-figure"/>, a VPN route Pv with RT 65335:10 from PE12 is distributed only to ASBR11 by RR in AS2.
+			In AS1, PE11 has a single path to reach Pv. If ASBR11 fails, BGP convergence should occur to provide a new path to PE12:
+			<list style="numbers">
+				<t>ASBR21 detects the failure of ASBR11 and picks up a new best path for RT 1:65335:10/96 through ASBR12.</t>
+				<t>ASBR21 sends Pv to ASBR12.</t>
+				<t>ASBR12 sends Pv to PE11.</t>
+			</list>
+			This convergence process could be very slow in high scale scenarios, thus not fitting the service level agreements that the service provider maintains.
+			</t>
+		</section>
+
+		<section anchor="problem-suboptimal-routing" title="Suboptimal routing">
+			<t>
+			In <xref target="ebgp-multihoming-figure"/>, a VPN route Pv with RT 65335:10 from PE12 is distributed only to ASBR11 by RR in AS2.
+			In AS1, PE11 has a single path to reach Pv from ASBR11. However, from a geographical point of view, ASBR11 may not be the best option for PE11 to reach PE12 (ASBR13 may provide a better end-to-end path).
+			PE11 doesn't have the ability to pick the best path to Pv from its point of view.
+			</t>
+		</section>
+
+    </section>
+	
+	<section anchor="proposal" title="Considering multiple paths of the RT NLRI">
+	<t>
+	This document proposes an alternative to the default behavior proposed by <xref target="RFC4684"/> for inter-AS VPN route distribution.
+	Any alternate behavior SHOULD consider multiple paths for an external RT NLRI among the ones available to solve the limitations highlighted in this document.
+	Implementations MAY propose one or more alternate behaviors to balance between adding more VPN routes states within the network and solving the limitations highlighted in this document.
+	</t>
+	<t>
+	As examples:
+	<list style="symbols">
+		<t>An implementation MAY support the ability to consider all paths for external RT NLRIs as eligible to be part of the VPN route distribution tree regardless of the origin-as. Thus, all VPN routes will be propagated other all possible distribution paths.</t>
+		<t>An implementation MAY support the ability to consider all paths for external RT NLRIs as eligible to be part of the VPN route distribution tree for only a subset of origin-as (e.g.: configured list of ASes, or all private ASes...). Thus, VPN routes will be propagated other all possible distribution paths only for a subset of destination ASes.</t>
+		<t>An implementation MAY support the ability to consider the best and second best paths for external RT NLRIs as eligible to be part of the VPN route distribution tree regardless of the origin-as. This would allow to provide at least one alternate path for VPN routes in the destination ASes.</t>
+	</list>
+	</t>
+	</section>
+
+	<section anchor="ops" title="Operational considerations">
+	<t>
+	Enabling alternate behaviors in consideration of external RT NLRIs that deviate from the default behavior specified in <xref target="RFC4684"/> may have operational implications as VPN routes may be distributed across additional paths leading to increase of BGP prefixes and paths on some devices.
+	Users must carefully evaluate the impact of these changes on their network/router scale.
+	</t>
+	<t>
+	Choosing the intended behavior for considering paths of external RT NLRIs is a local decision. Different nodes can use different behaviors without breaking the overall functionality of the VPN: alternate behaviors are adding paths for the VPN routes.
+	However, in order to overcome the limitations of <xref target="RFC4684"/> presented in <xref target="problem-statement"/>, it is important to ensure that all nodes that are participating to the VPN route distribution (e.g.: RRs, ASBRs...) are configured with a behavior that fulfills the propagation requirements.
+	</t>
+	</section>
+
+	<section anchor="security" title="Security considerations">
+	<t>
+	This document does not introduce any new security issue compared to <xref target="RFC4684"/>.
+	</t>
+	</section>
+	
+    <section anchor="acknowledgements" title="Acknowledgements">
+		<t>
+	Authors would like to thank Aravind Kumar Paramasivam for the useful comments and review.
+		</t>
+	</section>
+
+    <section anchor="IANA" title="IANA Considerations">
+    <t>There is no IANA consideration.</t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      &RFC2119;
+	  &RFC8174;
+	  &RFC4364;
+	  &RFC4684;
+    </references>
+  </back>
+  
+</rfc>
+
